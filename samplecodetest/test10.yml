@@ -1,0 +1,5 @@
+name: sample
+version: 1.0
+description: "This is a sample YAML file."
+
+# key: Configuration settings for the application
