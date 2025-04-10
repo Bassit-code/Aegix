@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Code Scanner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            margin: 40px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            text-align: left;
+            width: 350px;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+
+        select, input, button {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #download_link {
+            display: none;
+            font-size: 16px;
+            margin-top: 15px;
+            font-weight: bold;
+            text-decoration: none;
+            color: #007BFF;
+        }
+
+        #download_link:hover {
+            text-decoration: underline;
+        }
+    </style>
+
+    <script>
+        function toggleInputType() {
+            var scanType = document.getElementById("scan_type").value;
+            var fileInput = document.getElementById("file_input");
+            var dirInput = document.getElementById("dir_input");
+
+            if (scanType === "file") {
+                fileInput.style.display = "block";
+                dirInput.style.display = "none";
+            } else {
+                fileInput.style.display = "none";
+                dirInput.style.display = "block";
+            }
+        }
+
+        function scanCode() {
+        let formData = new FormData(document.getElementById("scanForm"));
+        fetch("/scan", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw new Error(err.error); });
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            let url = window.URL.createObjectURL(blob);
+            let downloadLink = document.getElementById("download_link");
+            downloadLink.href = url;
+            let selectedFormat = document.getElementById("output_format").value;
+            let timestamp = new Date().toISOString().replace(/[-:.]/g, "").slice(0, 15);
+            downloadLink.download = `security_report_${timestamp}.${selectedFormat}`;
+            downloadLink.style.display = "block";
+
+        })
+        .catch(error => alert("Error: " + error.message));
+    }
+    </script>
+</head>
+
+<body>
+    <h1>Secure Code Scanner</h1>
+    <form id="scanForm" onsubmit="event.preventDefault(); scanCode();">
+        <label for="scan_type">Select Scan Type:</label>
+        <select id="scan_type" name="scan_type" onchange="toggleInputType()">
+            <option value="file">Scan Single File</option>
+            <option value="directory">Scan Directory</option>
+        </select>
+
+        <div id="file_input">
+            <label for="file">Upload a file:</label>
+            <input type="file" id="file" name="file">
+        </div>
+
+        <div id="dir_input" style="display: none;">
+            <label for="directory_zip">Upload Directory (ZIP):</label>
+            <input type="file" id="directory_zip" name="directory_zip" accept=".zip">
+        </div>
+        
+
+        <label for="output_format">Select Report Format:</label>
+        <select id="output_format" name="output_format">
+            <option value="csv">CSV</option>
+            <option value="json">JSON</option>
+            <option value="html">HTML</option>
+        </select>
+
+        <button type="submit">Scan</button>
+    </form>
+
+    <br>
+    <a id="download_link" href="#" download="scan_report.csv" style="display: none;">Download Report</a>
+
+</body>
+</html>
