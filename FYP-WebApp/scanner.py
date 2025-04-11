@@ -4,107 +4,110 @@ import csv
 import json
 import io
 
+# Static security recommendations for each issue type
+RECOMMENDATIONS = {
+    "Sensitive Comment": "Remove any comments containing sensitive info before deploying.",
+    "Hardcoded Secret": "Avoid hardcoding secrets. Use environment variables or secret managers.",
+    "Insecure Error Message": "Avoid printing raw errors. Use logging libraries with proper levels."
+}
+
 def traverse_directory(directory_path, file_extensions):
-    """Recursively traverse a directory and yield files with specific extensions."""
     for root, _, files in os.walk(directory_path):
         for file in files:
             if file.endswith(tuple(file_extensions)):
                 yield os.path.join(root, file)
 
 def detect_sensitive_comments(file_path):
-    """Detect comments in various file types, including JSON."""
     comment_keywords = ['TODO', 'FIXME', 'password', 'secret', 'key']
     sensitive_comments = []
 
-    # Regular expressions for different comment styles
     comment_patterns = [
-        re.compile(r'#.*'),  # Python-style comments (#)
-        re.compile(r'//.*'),  # C, C++, Java, JavaScript-style comments (//)
-        re.compile(r'/\*.*?\*/', re.DOTALL),  # Multi-line block comments (/* ... */)
-        re.compile(r'<!--(.*?)-->', re.DOTALL)  # HTML-style comments (<!-- ... -->)
+        re.compile(r'#.*'),
+        re.compile(r'//.*'),
+        re.compile(r'/\*.*?\*/', re.DOTALL),
+        re.compile(r'<!--(.*?)-->', re.DOTALL)
     ]
 
     with open(file_path, 'r', encoding='utf-8', errors='ignore') as file:
         lines = file.readlines()
 
-    # Check for standard comment patterns
     for line_number, line in enumerate(lines, start=1):
         for pattern in comment_patterns:
             matches = pattern.findall(line)
             for match in matches:
                 if any(keyword.lower() in match.lower() for keyword in comment_keywords):
-                    sensitive_comments.append((line_number, "Sensitive Comment", match.strip()))
+                    sensitive_comments.append((line_number, "Sensitive Comment", match.strip(), RECOMMENDATIONS["Sensitive Comment"]))
 
-    # JSON-Specific Comment Detection (Keys like '__comment' or '_note')
     if file_path.endswith(".json"):
         try:
-            import json
-            json_data = json.loads(''.join(lines))  # Parse JSON
+            json_data = json.loads(''.join(lines))
             for key, value in json_data.items():
-                if isinstance(value, str):  # Check if value is a string (potential comment)
+                if isinstance(value, str):
                     if key.lower() in ["__comment", "_note", "comment"]:
                         if any(keyword.lower() in value.lower() for keyword in comment_keywords):
-                            sensitive_comments.append((1, "Sensitive Comment", f"{key}: {value.strip()}"))
+                            sensitive_comments.append((1, "Sensitive Comment", f"{key}: {value.strip()}", RECOMMENDATIONS["Sensitive Comment"]))
         except json.JSONDecodeError:
-            pass  # Ignore if it's not valid JSON (prevents breaking)
+            pass
 
     return sensitive_comments
 
-
-
 def detect_hardcoded_secrets(file_path):
-    """Detect hardcoded secrets such as passwords and API keys."""
-    secret_pattern = re.compile(r'(password|pwd|api_key|access_token|secret|key)\s*=\s*[\'\"].+[\'\"]', re.IGNORECASE)
+    secret_pattern = re.compile(r'(password|pwd|api_key|access_token|secret|key|token|github_token|auth_token|client_secret)\s*=\s*[\'\"].+[\'\"]', re.IGNORECASE)
     hardcoded_secrets = []
 
     with open(file_path, 'r', encoding='utf-8', errors='ignore') as file:
         for line_number, line in enumerate(file, start=1):
             if secret_pattern.search(line):
-                hardcoded_secrets.append((line_number, "Hardcoded Secret", line.strip()))
+                hardcoded_secrets.append((line_number, "Hardcoded Secret", line.strip(), RECOMMENDATIONS["Hardcoded Secret"]))
     return hardcoded_secrets
 
 def detect_insecure_error_messages(file_path):
-    """Detect error messages that might expose sensitive information."""
     error_keywords = ['print', 'log', 'raise', 'traceback']
     insecure_errors = []
 
     with open(file_path, 'r', encoding='utf-8', errors='ignore') as file:
         for line_number, line in enumerate(file, start=1):
             if any(keyword in line.lower() for keyword in error_keywords):
-                insecure_errors.append((line_number, "Insecure Error Message", line.strip()))
+                insecure_errors.append((line_number, "Insecure Error Message", line.strip(), RECOMMENDATIONS["Insecure Error Message"]))
     return insecure_errors
 
 def save_report(results, output_format):
-    """Generate report in-memory instead of saving it on disk."""
     if output_format == "csv":
         output = io.StringIO()
         writer = csv.writer(output)
-        writer.writerow(['File', 'Line Number', 'Issue', 'Description'])
+        writer.writerow(['File', 'Line Number', 'Issue', 'Description', 'Recommendation'])
         for file_path, issues in results.items():
-            for line_number, issue_type, description in issues:
-                writer.writerow([file_path, line_number, issue_type, description])
+            for line_number, issue_type, description, recommendation in issues:
+                writer.writerow([file_path, line_number, issue_type, description, recommendation])
         return output.getvalue()
 
     elif output_format == "json":
-        return json.dumps(results, indent=4)
+        formatted_results = []
+        for file_path, issues in results.items():
+            for line_number, issue_type, description, recommendation in issues:
+                formatted_results.append({
+                    "file": file_path,
+                    "line_number": line_number,
+                    "issue": issue_type,
+                    "description": description,
+                    "recommendation": recommendation
+                })
+        return json.dumps(formatted_results, indent=4)
 
     elif output_format == "html":
         output = io.StringIO()
         output.write("<html><head><title>Security Report</title></head><body>")
-        output.write("<h1>Security Scan Report</h1><table border='1'><tr><th>File</th><th>Line Number</th><th>Issue</th><th>Description</th></tr>")
+        output.write("<h1>Security Scan Report</h1><table border='1'><tr><th>File</th><th>Line Number</th><th>Issue</th><th>Description</th><th>Recommendation</th></tr>")
         for file_path, issues in results.items():
-            for line_number, issue_type, description in issues:
-                output.write(f"<tr><td>{file_path}</td><td>{line_number}</td><td>{issue_type}</td><td>{description}</td></tr>")
+            for line_number, issue_type, description, recommendation in issues:
+                output.write(f"<tr><td>{file_path}</td><td>{line_number}</td><td>{issue_type}</td><td>{description}</td><td>{recommendation}</td></tr>")
         output.write("</table></body></html>")
         return output.getvalue()
 
     return None
 
-
 def scan_file(file_path, output_format="csv"):
-    """Scan a single file for security issues and generate an in-memory report."""
     results = {}
-
     issues = []
     issues.extend(detect_sensitive_comments(file_path))
     issues.extend(detect_hardcoded_secrets(file_path))
@@ -117,7 +120,6 @@ def scan_file(file_path, output_format="csv"):
     return results, report_content
 
 def scan_directory(directory_path, output_format="csv"):
-    """Scan an entire directory for security issues and generate an in-memory report."""
     extensions = ['.py', '.js', '.java', '.html', '.php', '.c', '.cpp', '.h', '.sh', '.yaml', '.yml', '.json']
     results = {}
 
