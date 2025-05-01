@@ -1,3 +1,6 @@
 security_report_20250129_172706.csv
 security_report_*
 .env
+__pycache__/
+*.pyc
+*.pyo
