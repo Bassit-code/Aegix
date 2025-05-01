@@ -23,18 +23,26 @@ def scan():
         if uploaded_file.filename == "":
             return jsonify({"error": "No selected file"}), 400
 
-        file_name = os.path.splitext(uploaded_file.filename)[0]  # Extract filename without extension
+        file_name = os.path.splitext(uploaded_file.filename)[0]
         file_path = os.path.join("uploads", uploaded_file.filename)
         uploaded_file.save(file_path)
 
-        # Scan the uploaded file and generate an in-memory report
         results, report_content = scan_file(file_path, output_format)
-        os.remove(file_path)  # Delete file after scanning
+        os.remove(file_path)
 
         if report_content:
+            if output_format == "pdf":
+                return send_file(
+                    io.BytesIO(report_content),
+                    mimetype="application/pdf",
+                    as_attachment=True,
+                    download_name=f"{file_name}_report.pdf"
+                )
             return send_file(
                 io.BytesIO(report_content.encode()),
-                mimetype="text/csv" if output_format == "csv" else "application/json" if output_format == "json" else "text/html",
+                mimetype="text/csv" if output_format == "csv" else
+                         "application/json" if output_format == "json" else
+                         "text/html",
                 as_attachment=True,
                 download_name=f"{file_name}_report.{output_format}"
             )
@@ -48,7 +56,7 @@ def scan():
         if uploaded_zip.filename == "":
             return jsonify({"error": "No selected ZIP file"}), 400
 
-        zip_name = os.path.splitext(uploaded_zip.filename)[0]  # Extract zip filename without extension
+        zip_name = os.path.splitext(uploaded_zip.filename)[0]
         zip_path = os.path.join("uploads", uploaded_zip.filename)
         uploaded_zip.save(zip_path)
         extract_path = os.path.join("uploads", "extracted")
@@ -57,10 +65,9 @@ def scan():
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             zip_ref.extractall(extract_path)
 
-        # Scan the extracted directory
         results, report_content = scan_directory(extract_path, output_format)
 
-        # Cleanup extracted files and remove zip after scanning
+        # Cleanup
         for root, dirs, files in os.walk(extract_path, topdown=False):
             for file in files:
                 os.remove(os.path.join(root, file))
@@ -70,14 +77,22 @@ def scan():
         os.remove(zip_path)
 
         if report_content:
+            if output_format == "pdf":
+                return send_file(
+                    io.BytesIO(report_content),
+                    mimetype="application/pdf",
+                    as_attachment=True,
+                    download_name=f"{zip_name}_report.pdf"
+                )
             return send_file(
                 io.BytesIO(report_content.encode()),
-                mimetype="text/csv" if output_format == "csv" else "application/json" if output_format == "json" else "text/html",
+                mimetype="text/csv" if output_format == "csv" else
+                         "application/json" if output_format == "json" else
+                         "text/html",
                 as_attachment=True,
                 download_name=f"{zip_name}_report.{output_format}"
             )
         return jsonify({"error": "No issues found."})
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5000)
-
+    app.run(debug=True, host='0.0.0.0', port=5000, use_reloader=False)
