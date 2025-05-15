@@ -8,8 +8,7 @@ import time
 from dotenv import load_dotenv
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
-from reportlab.platypus import Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_LEFT
 
@@ -44,21 +43,14 @@ Be concise and relevant to the programming language if possible."""
             json={
                 "model": "mistralai/mistral-7b-instruct:free",
                 "messages": [
-                    {
-                        "role": "system",
-                        "content": "You are a secure code auditing assistant. Given a code snippet with a security vulnerability, explain the issue and recommend a fix."
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
+                    {"role": "system", "content": "You are a secure code auditing assistant. Given a code snippet with a security vulnerability, explain the issue and recommend a fix."},
+                    {"role": "user", "content": prompt}
                 ],
                 "max_tokens": 500,
                 "temperature": 0.5
             },
             timeout=15
         )
-
         print("[RAW AI RESPONSE]", response.text)
         result = response.json()
         return result["choices"][0]["message"]["content"].strip()
@@ -160,12 +152,107 @@ def save_report(results, output_format):
 
     elif output_format == "html":
         output = io.StringIO()
-        output.write("<html><head><title>Security Report</title></head><body>")
-        output.write("<h1>Security Scan Report</h1><table border='1'><tr><th>File</th><th>Line Number</th><th>Issue</th><th>Description</th><th>Recommendation</th></tr>")
+        output.write("""
+        <html>
+        <head>
+            <title>Security Scan Report</title>
+            <style>
+                :root {
+                    --bg-color: #f8f9fc;
+                    --text-color: #1f2937;
+                    --table-bg: #ffffff;
+                    --table-border: #ccc;
+                    --header-bg: #3b82f6;
+                    --header-text: #ffffff;
+                    --row-alt: #f1f5f9;
+                }
+
+                body.dark {
+                    --bg-color: #292639;
+                    --text-color: #ebeaf7;
+                    --table-bg: #333344;
+                    --table-border: #555566;
+                    --header-bg: #4444aa;
+                    --header-text: #ebeaf7;
+                    --row-alt: #3a3a50;
+                }
+
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 20px;
+                    background-color: var(--bg-color);
+                    color: var(--text-color);
+                }
+
+                h1 {
+                    text-align: center;
+                    color: var(--text-color);
+                }
+
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 20px;
+                    background-color: var(--table-bg);
+                    border: 1px solid var(--table-border);
+                }
+
+                th, td {
+                    border: 1px solid var(--table-border);
+                    padding: 10px;
+                    text-align: left;
+                    vertical-align: top;
+                    color: var(--text-color);
+                }
+
+                th {
+                    background-color: var(--header-bg);
+                    color: var(--header-text);
+                    font-size: 14px;
+                }
+
+                tr:nth-child(even) {
+                    background-color: var(--row-alt);
+                }
+
+                td {
+                    font-size: 13px;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Security Scan Report</h1>
+            <table>
+                <tr>
+                    <th>File</th>
+                    <th>Line Number</th>
+                    <th>Issue</th>
+                    <th>Description</th>
+                    <th>Recommendation</th>
+                </tr>
+        """)
         for file_path, issues in results.items():
             for line_number, issue_type, description, recommendation in issues:
-                output.write(f"<tr><td>{file_path}</td><td>{line_number}</td><td>{issue_type}</td><td>{description}</td><td>{recommendation}</td></tr>")
-        output.write("</table></body></html>")
+                output.write(f"""
+                <tr>
+                    <td>{file_path}</td>
+                    <td>{line_number}</td>
+                    <td>{issue_type}</td>
+                    <td>{description}</td>
+                    <td>{recommendation}</td>
+                </tr>
+                """)
+        output.write("""
+            </table>
+            <script>
+                const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+                const savedTheme = localStorage.getItem("theme");
+                const useDark = savedTheme ? savedTheme === "dark" : prefersDark;
+                if (useDark) document.body.classList.add("dark");
+            </script>
+        </body>
+        </html>
+        """)
         return output.getvalue()
 
     elif output_format == "pdf":

@@ -1,492 +1,626 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Secure Code Scanner</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
+    <title>Secure Code Scanner</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-    body {
-      font-family: Arial, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      text-align: center;
-      margin: 40px;
-      transition: var(--transition);
-    }
+      body {
+        font-family: Arial, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        text-align: center;
+        margin: 40px;
+        transition: var(--transition);
+      }
 
-    h1 {
-      color: var(--text-color);
-      transition: var(--transition);
-    }
+      h1 {
+        color: var(--text-color);
+        transition: var(--transition);
+      }
 
-    form {
-      background: var(--form-bg-color);
-      color: var(--text-color);
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-      display: inline-block;
-      text-align: left;
-      width: 350px;
-    }
+      form {
+        background: var(--form-bg-color);
+        color: var(--text-color);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        display: inline-block;
+        text-align: left;
+        width: 350px;
+      }
 
-    label {
-      font-weight: bold;
-      display: block;
-      margin-top: 10px;
-    }
+      label {
+        font-weight: bold;
+        display: block;
+        margin-top: 10px;
+      }
 
-    select, input, button {
-      background-color: var(--form-element-bg-color);
-      color: var(--text-color);
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      border-radius: 5px;
-      border: 1px solid var(--form-element-border-color);
-      font-size: 16px;
-    }
+      select,
+      input,
+      button {
+        background-color: var(--form-element-bg-color);
+        color: var(--text-color);
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border-radius: 5px;
+        border: 1px solid var(--form-element-border-color);
+        font-size: 16px;
+      }
 
-    button {
-      background-color: var(--button-bg-color);
-      color: var(--button-text-color);
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 15px;
-    }
+      button {
+        background-color: var(--button-bg-color);
+        color: var(--button-text-color);
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 15px;
+      }
 
-    button:hover {
-      background-color: var(--button-hover-bg-color);
-    }
+      button:hover {
+        background-color: var(--button-hover-bg-color);
+      }
 
-    #download_link {
-      color: var(--link-color);
-      display: none;
-      font-size: 16px;
-      margin-top: 20px;
-      font-weight: bold;
-      text-decoration: none;
-      position: relative;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    #download_link:hover {
-      color: var(--link-hover-color);
-      text-decoration: underline;
-    }
-
-    #download_link.show-download {
-      display: inline-block;
-      animation: fadeInUp 0.5s ease forwards;
-    }
-
-    @keyframes fadeInUp {
-      from {
+      #download_link {
+        color: var(--link-color);
+        display: none;
+        font-size: 16px;
+        margin-top: 20px;
+        font-weight: bold;
+        text-decoration: none;
+        position: relative;
         opacity: 0;
-        transform: translateY(20px);
+        transition: opacity 0.3s ease;
       }
-      to {
-        opacity: 1;
-        transform: translateY(0);
+
+      #download_link:hover {
+        color: var(--link-hover-color);
+        text-decoration: underline;
       }
-    }
 
-    .scanner-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: var(--overlay-bg-color);
-      z-index: 9999;
-      transition: var(--transition);
-    }
+      #download_link.show-download {
+        display: inline-block;
+        animation: fadeInUp 0.5s ease forwards;
+      }
 
-    .ocrloader {
-      width: 94px;
-      height: 130px;
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      backface-visibility: hidden;
-    }
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
 
-    .ocrloader span {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 20px;
-      background-color: var(--loader-bar-color);
-      z-index: 1;
-      transform: translateY(135%);
-      animation: move 1.2s cubic-bezier(0.15, 0.44, 0.76, 0.64) infinite;
-    }
+      .scanner-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: var(--overlay-bg-color);
+        z-index: 9999;
+        transition: var(--transition);
+      }
 
-    .ocrloader > div {
-      z-index: 1;
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      width: 48%;
-      backface-visibility: hidden;
-    }
+      .ocrloader {
+        width: 94px;
+        height: 130px;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        backface-visibility: hidden;
+      }
 
-    .ocrloader i {
-      display: block;
-      height: 2px;
-      background: #333;
-      margin: 2.2px auto;
-      backface-visibility: hidden;
-    }
+      .ocrloader span {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 20px;
+        background-color: var(--loader-bar-color);
+        z-index: 1;
+        transform: translateY(135%);
+        animation: move 1.2s cubic-bezier(0.15, 0.44, 0.76, 0.64) infinite;
+      }
 
-    .ocrloader i:nth-child(2) { width: 75%; }
-    .ocrloader i:nth-child(3) { width: 81%; }
-    .ocrloader i:nth-child(4) { width: 87%; }
-    .ocrloader i:nth-child(6) { width: 71%; }
-    .ocrloader i:nth-child(7) { width: 81%; }
-    .ocrloader i:nth-child(8) { width: 65%; }
-    .ocrloader i:nth-child(9) { width: 83%; }
-    .ocrloader i:nth-child(10) { width: 75%; }
-    .ocrloader i:nth-child(12) { width: 86%; }
-    .ocrloader i:nth-child(14) { width: 65%; }
-    .ocrloader i:nth-child(16) { width: 75%; }
-    .ocrloader i:nth-child(18) { width: 83%; }
+      .ocrloader > div {
+        z-index: 1;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 48%;
+        backface-visibility: hidden;
+      }
 
-    .ocrloader:before, .ocrloader:after, .ocrloader em:after, .ocrloader em:before {
-      border-color: var(--loader-corner-color);
-      content: "";
-      position: absolute;
-      width: 19px;
-      height: 16px;
-      border-style: solid;
-      border-width: 0px;
-    }
+      .ocrloader i {
+        display: block;
+        height: 2px;
+        background: #333;
+        margin: 2.2px auto;
+        backface-visibility: hidden;
+      }
 
-    .ocrloader:before {
-      left: 0;
-      top: 0;
-      border-left-width: 2px;
-      border-top-width: 2px;
-    }
+      .ocrloader i:nth-child(2) {
+        width: 75%;
+      }
+      .ocrloader i:nth-child(3) {
+        width: 81%;
+      }
+      .ocrloader i:nth-child(4) {
+        width: 87%;
+      }
+      .ocrloader i:nth-child(6) {
+        width: 71%;
+      }
+      .ocrloader i:nth-child(7) {
+        width: 81%;
+      }
+      .ocrloader i:nth-child(8) {
+        width: 65%;
+      }
+      .ocrloader i:nth-child(9) {
+        width: 83%;
+      }
+      .ocrloader i:nth-child(10) {
+        width: 75%;
+      }
+      .ocrloader i:nth-child(12) {
+        width: 86%;
+      }
+      .ocrloader i:nth-child(14) {
+        width: 65%;
+      }
+      .ocrloader i:nth-child(16) {
+        width: 75%;
+      }
+      .ocrloader i:nth-child(18) {
+        width: 83%;
+      }
 
-    .ocrloader:after {
-      right: 0;
-      top: 0;
-      border-right-width: 2px;
-      border-top-width: 2px;
-    }
+      .ocrloader:before,
+      .ocrloader:after,
+      .ocrloader em:after,
+      .ocrloader em:before {
+        border-color: var(--loader-corner-color);
+        content: "";
+        position: absolute;
+        width: 19px;
+        height: 16px;
+        border-style: solid;
+        border-width: 0px;
+      }
 
-    .ocrloader em:before {
-      left: 0;
-      bottom: 0;
-      border-left-width: 2px;
-      border-bottom-width: 2px;
-    }
+      .ocrloader:before {
+        left: 0;
+        top: 0;
+        border-left-width: 2px;
+        border-top-width: 2px;
+      }
 
-    .ocrloader em:after {
-      right: 0;
-      bottom: 0;
-      border-right-width: 2px;
-      border-bottom-width: 2px;
-    }
+      .ocrloader:after {
+        right: 0;
+        top: 0;
+        border-right-width: 2px;
+        border-top-width: 2px;
+      }
 
-    .ocrloader p {
-      color: var(--loader-text-color);
-      position: absolute;
-      bottom: -50px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 14px;
-      font-weight: bold;
-      font-family: sans-serif;
-      animation: blinker 1s linear infinite;
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
+      .ocrloader em:before {
+        left: 0;
+        bottom: 0;
+        border-left-width: 2px;
+        border-bottom-width: 2px;
+      }
 
-    .ocrloader p::before {
-      content: '';
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      margin-right: 8px;
-      border-radius: 50%;
-      background: var(--loader-dot-color);
-      vertical-align: middle;
-    }
+      .ocrloader em:after {
+        right: 0;
+        bottom: 0;
+        border-right-width: 2px;
+        border-bottom-width: 2px;
+      }
 
-    @keyframes move {
-      0%, 100% { transform: translateY(135%); }
-      50% { transform: translateY(0%); }
-      75% { transform: translateY(272%); }
-    }
+      .ocrloader p {
+        color: var(--loader-text-color);
+        position: absolute;
+        bottom: -50px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 14px;
+        font-weight: bold;
+        font-family: sans-serif;
+        animation: blinker 1s linear infinite;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
 
-    @keyframes blinker {
-      50% { opacity: 0; }
-    }
+      .ocrloader p::before {
+        content: "";
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        margin-right: 8px;
+        border-radius: 50%;
+        background: var(--loader-dot-color);
+        vertical-align: middle;
+      }
 
-    /* Dark mode styles */
-    :root {
-      --bg-color: #fff;
-      --text-color: #303030;
-      --switch-shadow: 0px 0px 10px 3px rgba(0, 0, 0, 0.1) inset;
-      --transition: all 0.3s cubic-bezier(0.76, 0, 0.24, 1);
-      --form-bg-color: #ffffff;
-      --form-element-bg-color: #f9f9f9;
-      --form-element-border-color: #ccc;
-      --button-bg-color: #007BFF;
-      --button-text-color: #ffffff;
-      --button-hover-bg-color: #0056b3;
-      --link-color: #007BFF;
-      --link-hover-color: #0056b3;
-      --overlay-bg-color: rgba(255, 255, 255, 0.9);
-      --loader-bar-color: rgba(0, 123, 255, 0.4);
-      --loader-text-color: #007BFF;
-      --loader-dot-color: #007BFF;
-      --loader-corner-color: #007BFF;
-    }
+      @keyframes move {
+        0%,
+        100% {
+          transform: translateY(135%);
+        }
+        50% {
+          transform: translateY(0%);
+        }
+        75% {
+          transform: translateY(272%);
+        }
+      }
 
-    .dark {
-      --bg-color: #292639;
-      --text-color: #ebeaf7;
-      --switch-shadow: 0px 0px 10px 3px rgba(0, 0, 0, 0.5) inset;
-      --form-bg-color: #333344;
-      --form-element-bg-color: #444455;
-      --form-element-border-color: #555566;
-      --button-bg-color: #4444aa;
-      --button-text-color: #ebeaf7;
-      --button-hover-bg-color: #333388;
-      --link-color: #8899ff;
-      --link-hover-color: #6677cc;
-      --overlay-bg-color: rgba(0, 0, 0, 0.9);
-      --loader-bar-color: rgba(136, 153, 255, 0.4);
-      --loader-text-color: #8899ff;
-      --loader-dot-color: #8899ff;
-      --loader-corner-color: #8899ff;
-    }
+      @keyframes blinker {
+        50% {
+          opacity: 0;
+        }
+      }
 
-    .theme-switch {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: absolute;
-      top: 20px;
-      right: 20px;
-    }
+      :root {
+        --bg-color: #f8f9fc;
+        --text-color: #1f2937;
+        --switch-shadow: 0px 0px 10px 3px rgba(0, 0, 0, 0.08) inset;
+        --transition: all 0.3s cubic-bezier(0.76, 0, 0.24, 1);
+        --form-bg-color: #ffffff;
+        --form-element-bg-color: #edf2f7;
+        --form-element-border-color: #cbd5e1;
+        --button-bg-color: #3b82f6;
+        --button-text-color: #ffffff;
+        --button-hover-bg-color: #2563eb;
+        --link-color: #3b82f6;
+        --link-hover-color: #1d4ed8;
+        --overlay-bg-color: rgba(255, 255, 255, 0.92);
+        --loader-bar-color: rgba(59, 130, 246, 0.4);
+        --loader-text-color: #2563eb;
+        --loader-dot-color: #3b82f6;
+        --loader-corner-color: #3b82f6;
+      }
 
-    .theme-switch .checkbox {
-      opacity: 0;
-      position: absolute;
-    }
+      .dark {
+        --bg-color: #292639;
+        --text-color: #ebeaf7;
+        --switch-shadow: 0px 0px 10px 3px rgba(0, 0, 0, 0.5) inset;
+        --form-bg-color: #333344;
+        --form-element-bg-color: #444455;
+        --form-element-border-color: #555566;
+        --button-bg-color: #4444aa;
+        --button-text-color: #ebeaf7;
+        --button-hover-bg-color: #333388;
+        --link-color: #8899ff;
+        --link-hover-color: #6677cc;
+        --overlay-bg-color: rgba(0, 0, 0, 0.9);
+        --loader-bar-color: rgba(136, 153, 255, 0.4);
+        --loader-text-color: #8899ff;
+        --loader-dot-color: #8899ff;
+        --loader-corner-color: #8899ff;
+      }
 
-    .theme-switch .label {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px;
-      border-radius: 50px;
-      position: relative;
-      height: 40px;
-      width: 80px;
-      cursor: pointer;
-      box-shadow: var(--switch-shadow);
-      transition: var(--transition);
-    }
+      .theme-switch {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
+        top: 20px;
+        right: 20px;
+      }
 
-    .theme-switch .ball {
-      transition: var(--transition);
-      background-color: var(--text-color);
-      position: absolute;
-      border-radius: 50%;
-      top: 5px;
-      left: 5px;
-      height: 30px;
-      width: 30px;
-    }
+      .theme-switch .checkbox {
+        opacity: 0;
+        position: absolute;
+      }
 
-    .dark .theme-switch .ball {
-      transform: translateX(40px);
-    }
+      .theme-switch .label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px;
+        border-radius: 50px;
+        position: relative;
+        height: 40px;
+        width: 80px;
+        cursor: pointer;
+        box-shadow: var(--switch-shadow);
+        transition: var(--transition);
+      }
 
-    .theme-switch .label:hover .moon,
-    .theme-switch .label:hover .sun {
-      transform: rotate(360deg);
-    }
+      .theme-switch .ball {
+        transition: var(--transition);
+        background-color: var(--text-color);
+        position: absolute;
+        border-radius: 50%;
+        top: 5px;
+        left: 5px;
+        height: 30px;
+        width: 30px;
+      }
 
-    
-    .theme-switch .sun {
-      transform-origin: center center;
-      transition: all 0.5s cubic-bezier(0.76, 0, 0.24, 1);
-      color: #ff6b00;
-    }
+      .dark .theme-switch .ball {
+        transform: translateX(40px);
+      }
 
-    .theme-switch .moon {
-      transform-origin: center center;
-      transition: all 0.5s cubic-bezier(0.76, 0, 0.24, 1);
-      color: #f1c40f;
-    }
-  </style>
-</head>
-<body>
-  <h1>Secure Code Scanner</h1>
-  <form id="scanForm" onsubmit="event.preventDefault(); scanCode();">
-    <label for="scan_type">Select Scan Type:</label>
-    <select id="scan_type" name="scan_type" onchange="toggleInputType()">
-      <option value="file">Scan Single File</option>
-      <option value="directory">Scan Directory</option>
-    </select>
+      .theme-switch .label:hover .moon,
+      .theme-switch .label:hover .sun {
+        transform: rotate(360deg);
+      }
 
-    <div id="file_input">
-      <label for="file">Upload a file:</label>
-      <input type="file" id="file" name="file" />
-    </div>
+      .theme-switch .sun {
+        transform-origin: center center;
+        transition: all 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+        color: #ff6b00;
+      }
 
-    <div id="dir_input" style="display: none;">
-      <label for="directory_zip">Upload Directory (ZIP):</label>
-      <input type="file" id="directory_zip" name="directory_zip" accept=".zip" />
-    </div>
+      .theme-switch .moon {
+        transform-origin: center center;
+        transition: all 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+        color: #f1c40f;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Secure Code Scanner</h1>
+    <form id="scanForm" onsubmit="event.preventDefault(); scanCode();">
+      <label for="scan_type">Select Scan Type:</label>
+      <select id="scan_type" name="scan_type" onchange="toggleInputType()">
+        <option value="file">Scan Single File</option>
+        <option value="directory">Scan Directory</option>
+      </select>
 
-    <label for="output_format">Select Report Format:</label>
-    <select id="output_format" name="output_format">
-      <option value="json">JSON</option>
-      <option value="html">HTML</option>
-      <option value="csv" selected>CSV</option>
-      <option value="pdf">PDF</option>
-    </select>
-
-    <button type="submit">Scan</button>
-  </form>
-
-  <br />
-  <a id="download_link" href="#" download="scan_report.csv" title="Your scan’s complete — grab the report here">Download Report</a>
-
-  <div class="scanner-overlay" id="scannerOverlay">
-    <div class="ocrloader">
-      <em></em>
-      <div>
-        <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-        <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-        <i></i><i></i><i></i>
+      <div id="file_input">
+        <label for="file">Upload a file:</label>
+        <input type="file" id="file" name="file" />
       </div>
-      <span></span>
-      <p>SCANNING... PLEASE WAIT</p>
+
+      <div id="dir_input" style="display: none">
+        <label for="directory_zip">Upload Directory (ZIP):</label>
+        <input
+          type="file"
+          id="directory_zip"
+          name="directory_zip"
+          accept=".zip"
+        />
+      </div>
+
+      <label for="output_format">Select Report Format:</label>
+      <select id="output_format" name="output_format">
+        <option value="json">JSON</option>
+        <option value="html">HTML</option>
+        <option value="csv" selected>CSV</option>
+        <option value="pdf">PDF</option>
+      </select>
+
+      <button type="submit">Scan</button>
+    </form>
+
+    <br />
+    <a
+      id="download_link"
+      href="#"
+      download="scan_report.csv"
+      title="Your scan’s complete — grab the report here"
+      >Download Report</a
+    >
+
+    <div class="scanner-overlay" id="scannerOverlay">
+      <div class="ocrloader">
+        <em></em>
+        <div>
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i> <i></i><i></i><i></i
+          ><i></i><i></i><i></i><i></i> <i></i><i></i><i></i>
+        </div>
+        <span></span>
+        <p>SCANNING... PLEASE WAIT</p>
+      </div>
     </div>
-  </div>
 
-  <!-- Dark mode toggle -->
-  <div class="theme-switch">
-    <input type="checkbox" class="checkbox" id="checkbox" />
-    <label for="checkbox" class="label">
-      <svg class="moon" width="24" height="24" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 11.5066C3 16.7497 7.25034 21 12.4934 21C16.2209 21 19.4466 18.8518 21 15.7259C12.4934 15.7259 8.27411 11.5066 8.27411 3C5.14821 4.55344 3 7.77915 3 11.5066Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <svg class="sun" width="24" height="24" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M22 12L23 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M12 2V1" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M12 23V22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M20 20L19 19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M20 4L19 5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M4 20L5 19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M4 4L5 5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M1 12L2 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <div class="ball"></div>
-    </label>
-  </div>
+    <!-- Dark mode toggle -->
+    <div class="theme-switch">
+      <input type="checkbox" class="checkbox" id="checkbox" />
+      <label for="checkbox" class="label">
+        <svg
+          class="moon"
+          width="24"
+          height="24"
+          stroke-width="1.5"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M3 11.5066C3 16.7497 7.25034 21 12.4934 21C16.2209 21 19.4466 18.8518 21 15.7259C12.4934 15.7259 8.27411 11.5066 8.27411 3C5.14821 4.55344 3 7.77915 3 11.5066Z"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <svg
+          class="sun"
+          width="24"
+          height="24"
+          stroke-width="1.5"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M22 12L23 12"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M12 2V1"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M12 23V22"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M20 20L19 19"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M20 4L19 5"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M4 20L5 19"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M4 4L5 5"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M1 12L2 12"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <div class="ball"></div>
+      </label>
+    </div>
 
-  <!-- Scan complete sound -->
-  <audio id="dingSound" src="static/doublechime.mp3" preload="auto"></audio>
+    <!-- Scan complete sound -->
+    <audio id="dingSound" src="static/doublechime.mp3" preload="auto"></audio>
 
-  <script>
-    function toggleInputType() {
-      const scanType = document.getElementById("scan_type").value;
-      document.getElementById("file_input").style.display = scanType === "file" ? "block" : "none";
-      document.getElementById("dir_input").style.display = scanType === "directory" ? "block" : "none";
-    }
-
-    function scanCode() {
-  document.getElementById("scannerOverlay").style.display = "block";
-  document.getElementById("download_link").classList.remove("show-download");
-  document.getElementById("download_link").style.display = "none";
-
-  const formData = new FormData(document.getElementById("scanForm"));
-  fetch("/scan", {
-    method: "POST",
-    body: formData
-  })
-  .then(response => {
-    if (!response.ok) throw new Error("Upload required! Please choose a file or ZIP before scanning");
-    return response.blob();
-  })
-  .then(blob => {
-    const now = new Date();
-    const timestamp = [
-      now.getFullYear(),
-      String(now.getMonth() + 1).padStart(2, '0'),
-      String(now.getDate()).padStart(2, '0')
-    ].join('') + 'T' +
-    [
-      String(now.getHours()).padStart(2, '0'),
-      String(now.getMinutes()).padStart(2, '0'),
-      String(now.getSeconds()).padStart(2, '0')
-    ].join('');
-
-    const selectedFormat = document.getElementById("output_format").value;
-    const url = window.URL.createObjectURL(blob);
-    const downloadLink = document.getElementById("download_link");
-
-    downloadLink.href = url;
-    downloadLink.download = `security_report_${timestamp}.${selectedFormat}`;
-    downloadLink.style.display = "inline-block";
-    downloadLink.classList.add("show-download");
-
-    const sound = document.getElementById("dingSound");
-    if (sound) {
-      sound.play().catch(err => console.warn("Sound failed to play:", err));
-    }
-
-    document.getElementById("scannerOverlay").style.display = "none";
-  })
-  .catch(error => {
-    alert(error.message);
-    document.getElementById("scannerOverlay").style.display = "none";
-  });
-}
-
-    // Remember theme preference and default to system theme
-    const themeToggle = document.querySelector(".theme-switch input");
-    const userPreference = localStorage.getItem("theme");
-    const systemPreference = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-
-    if (userPreference) {
-      document.documentElement.classList.toggle("dark", userPreference === "dark");
-      themeToggle.checked = userPreference === "dark";
-    } else {
-      document.documentElement.classList.toggle("dark", systemPreference === "dark");
-      themeToggle.checked = systemPreference === "dark";
-    }
-
-    themeToggle.addEventListener("click", () => {
-      if (themeToggle.checked) {
-        document.documentElement.classList.add("dark");
-        localStorage.setItem("theme", "dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-        localStorage.setItem("theme", "light");
+    <script>
+      function toggleInputType() {
+        const scanType = document.getElementById("scan_type").value;
+        document.getElementById("file_input").style.display =
+          scanType === "file" ? "block" : "none";
+        document.getElementById("dir_input").style.display =
+          scanType === "directory" ? "block" : "none";
       }
-    });
-  </script>
-</body>
+
+      function scanCode() {
+        document.getElementById("scannerOverlay").style.display = "block";
+        document
+          .getElementById("download_link")
+          .classList.remove("show-download");
+        document.getElementById("download_link").style.display = "none";
+
+        const formData = new FormData(document.getElementById("scanForm"));
+        fetch("/scan", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => {
+            if (!response.ok)
+              throw new Error(
+                "Upload required! Please choose a file or ZIP file before scanning"
+              );
+            return response.blob();
+          })
+          .then((blob) => {
+            const now = new Date();
+            const timestamp =
+              [
+                now.getFullYear(),
+                String(now.getMonth() + 1).padStart(2, "0"),
+                String(now.getDate()).padStart(2, "0"),
+              ].join("") +
+              "T" +
+              [
+                String(now.getHours()).padStart(2, "0"),
+                String(now.getMinutes()).padStart(2, "0"),
+                String(now.getSeconds()).padStart(2, "0"),
+              ].join("");
+
+            const selectedFormat =
+              document.getElementById("output_format").value;
+            const url = window.URL.createObjectURL(blob);
+            const downloadLink = document.getElementById("download_link");
+
+            downloadLink.href = url;
+            downloadLink.download = `security_report_${timestamp}.${selectedFormat}`;
+            downloadLink.style.display = "inline-block";
+            downloadLink.classList.add("show-download");
+
+            const sound = document.getElementById("dingSound");
+            if (sound) {
+              sound
+                .play()
+                .catch((err) => console.warn("Sound failed to play:", err));
+            }
+
+            document.getElementById("scannerOverlay").style.display = "none";
+          })
+          .catch((error) => {
+            alert(error.message);
+            document.getElementById("scannerOverlay").style.display = "none";
+          });
+      }
+
+      // Remember theme preference and default to system theme
+      const themeToggle = document.querySelector(".theme-switch input");
+      const userPreference = localStorage.getItem("theme");
+      const systemPreference = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
+        ? "dark"
+        : "light";
+
+      if (userPreference) {
+        document.documentElement.classList.toggle(
+          "dark",
+          userPreference === "dark"
+        );
+        themeToggle.checked = userPreference === "dark";
+      } else {
+        document.documentElement.classList.toggle(
+          "dark",
+          systemPreference === "dark"
+        );
+        themeToggle.checked = systemPreference === "dark";
+      }
+
+      themeToggle.addEventListener("click", () => {
+        if (themeToggle.checked) {
+          document.documentElement.classList.add("dark");
+          localStorage.setItem("theme", "dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+          localStorage.setItem("theme", "light");
+        }
+      });
+    </script>
+  </body>
 </html>

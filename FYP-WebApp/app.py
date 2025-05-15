@@ -8,14 +8,17 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
+    # Render the main page
     return render_template('index.html')
 
 @app.route('/scan', methods=['POST'])
 def scan():
+    # Get scan type and output format from the form
     scan_type = request.form.get("scan_type")
     output_format = request.form.get("output_format", "csv")
 
     if scan_type == "file":
+        # Handle single file upload
         if "file" not in request.files:
             return jsonify({"error": "No file uploaded"}), 400
 
@@ -27,10 +30,12 @@ def scan():
         file_path = os.path.join("uploads", uploaded_file.filename)
         uploaded_file.save(file_path)
 
+        # Scan the uploaded file
         results, report_content = scan_file(file_path, output_format)
-        os.remove(file_path)
+        os.remove(file_path)  # Clean up uploaded file
 
         if report_content:
+            # Return the report in the requested format
             if output_format == "pdf":
                 return send_file(
                     io.BytesIO(report_content),
@@ -46,9 +51,11 @@ def scan():
                 as_attachment=True,
                 download_name=f"{file_name}_report.{output_format}"
             )
-        return jsonify({"error": "No issues found."})
+        # No issues found or unsupported file
+        return jsonify({"Scan completed": "No issues detected, or the file format is not supported."})
 
     elif scan_type == "directory":
+        # Handle directory (ZIP) upload
         if "directory_zip" not in request.files:
             return jsonify({"error": "No ZIP file uploaded"}), 400
 
@@ -62,12 +69,14 @@ def scan():
         extract_path = os.path.join("uploads", "extracted")
         os.makedirs(extract_path, exist_ok=True)
 
+        # Extract ZIP contents
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             zip_ref.extractall(extract_path)
 
+        # Scan the extracted directory
         results, report_content = scan_directory(extract_path, output_format)
 
-        # Cleanup
+        # Cleanup extracted files and ZIP
         for root, dirs, files in os.walk(extract_path, topdown=False):
             for file in files:
                 os.remove(os.path.join(root, file))
@@ -77,6 +86,7 @@ def scan():
         os.remove(zip_path)
 
         if report_content:
+            # Return the report in the requested format
             if output_format == "pdf":
                 return send_file(
                     io.BytesIO(report_content),
@@ -92,7 +102,9 @@ def scan():
                 as_attachment=True,
                 download_name=f"{zip_name}_report.{output_format}"
             )
-        return jsonify({"error": "No issues found."})
+        # No issues found or unsupported files
+        return jsonify({"Scan completed": "No issues detected, or the file format is not supported."})
 
 if __name__ == "__main__":
+    # Start the Flask development server
     app.run(debug=True, host='0.0.0.0', port=5000, use_reloader=False)
