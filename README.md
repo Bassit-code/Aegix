@@ -54,7 +54,7 @@ Aegix/
 
 ## 📸 Screenshots
 
-*(Screenshots coming soon — or include some from the live demo interface and report output)*
+*(Screenshots coming soon)*
 
 ---
 
