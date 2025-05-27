@@ -42,14 +42,13 @@ For security reasons, the `.env` file containing the key is not included in this
 
 ## 📂 Project Structure
 
-Aegix/
-│
-├── app.py # Flask server logic
-├── scanner.py # Vulnerability scanning and AI integration
-├── templates/
-│ └── index.html # Web interface
-├── static/ # Assets (icons, sounds, etc.)
-└── uploads/ # Temporary upload directory (auto-created)
+
+- `app.py`: Flask server logic
+- `scanner.py`: Scanning engine and AI integration
+- `templates/index.html`: Frontend interface
+- `static/`: Icons, sounds, assets
+- `uploads/`: Temp directory for scan input (auto-created)
+
 
 
 ---
