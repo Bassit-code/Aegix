@@ -1,4 +1,6 @@
 # 🛡️ Aegix – Secure Code Scanner
+![License: CC BY-NC-ND 4.0](https://img.shields.io/badge/License-BY--NC--ND%204.0-lightgrey.svg)
+
 
 **Aegix** is a web-based tool that scans source code to detect common security vulnerabilities, including:
 
