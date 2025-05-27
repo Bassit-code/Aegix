@@ -60,8 +60,11 @@ Aegix/
 
 ## 📄 Licence
 
-This project was developed for academic and portfolio use.  
-© 2025 Bassit Irfan. This project is not licensed for reuse or modification without explicit permission.
+This project is licensed under the [Creative Commons BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) licence.
+
+You may view and share the code for personal or educational use, but **you may not reuse, modify, or redistribute it** without explicit permission.
+
+© 2025 Bassit Irfan
 
 ---
 
